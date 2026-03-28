@@ -235,6 +235,39 @@ export default function VerifyPage() {
             </div>
           </div>
 
+          {/* Provenance Timeline */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+            <h3 className="font-semibold mb-5">Provenance Timeline</h3>
+            <div className="space-y-0">
+              {[
+                { label: "Minted on Privacy Node", done: true, detail: `Confidential NFT created with encrypted metadata` },
+                { label: "AI Oracle Attested", done: attestation.valid, detail: `Score: ${attestation.aiScore}/100 — ${attestation.serialVerified ? "Serial Merkle-verified" : "Serial unverified"}` },
+                { label: "Bridged to Public Chain", done: attestation.attestedAt > 0, detail: attestation.attestedAt > 0 ? new Date(attestation.attestedAt * 1000).toLocaleString() : "Pending" },
+                { label: "Listed on Marketplace", done: false, detail: "Available for purchase with USDR" },
+                { label: "Purchased & Revealed", done: false, detail: "Private metadata revealed to buyer" },
+              ].map((step, i, arr) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      step.done ? "bg-emerald-500 text-zinc-950" : "bg-zinc-800 text-zinc-500 border border-zinc-700"
+                    }`}>
+                      {step.done ? (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      ) : i + 1}
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className={`w-px h-8 ${step.done ? "bg-emerald-500/40" : "bg-zinc-800"}`} />
+                    )}
+                  </div>
+                  <div className="pb-6">
+                    <p className={`text-sm font-medium ${step.done ? "text-zinc-100" : "text-zinc-500"}`}>{step.label}</p>
+                    <p className="text-xs text-zinc-500">{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* AI Summary */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
             <div className="flex items-center gap-2 mb-3">
@@ -242,6 +275,7 @@ export default function VerifyPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
               <h3 className="font-semibold">AI Summary</h3>
+              <a href={`/certificate/${tokenId}`} className="ml-auto text-xs text-emerald-400 hover:underline">View Certificate</a>
             </div>
             <p className="text-zinc-300 text-sm leading-relaxed">{attestation.aiSummary}</p>
           </div>

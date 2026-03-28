@@ -31,29 +31,75 @@ const PRESETS = [
   {
     label: "Rolex Submariner Date",
     brand: "Rolex", model: "Submariner Date", reference: "126610LN",
-    year: 2023, serial: "M126610LN-7E8F9A0B", caliber: "3235",
+    year: 2023, serial: `M126610LN-${Date.now().toString(36).toUpperCase()}`, caliber: "3235",
     material: "Oystersteel", dialColor: "Black", braceletType: "Oyster",
     caseDiameter: 41, appraisedValue: 14500, condition: "Excellent",
     conditionNotes: "Full set, warranty card dated 2023, minor bracelet wear",
     serviceCenter: "Rolex Service Centre Geneva", serviceWork: "Full movement service",
+    fraud: false,
   },
   {
     label: "GMT-Master II Batman",
     brand: "Rolex", model: "GMT-Master II", reference: "126710BLNR",
-    year: 2022, serial: "M126710BLNR-1C2D3E4F", caliber: "3285",
+    year: 2022, serial: `M126710BLNR-${Date.now().toString(36).toUpperCase()}`, caliber: "3285",
     material: "Oystersteel", dialColor: "Black", braceletType: "Jubilee",
     caseDiameter: 40, appraisedValue: 17200, condition: "Very Good",
     conditionNotes: "Light scratches on polished center links, bezel insert perfect",
     serviceCenter: "Watchfinder London", serviceWork: "Polish and pressure test",
+    fraud: false,
   },
   {
-    label: "Submariner No Date",
-    brand: "Rolex", model: "Submariner", reference: "124060",
-    year: 2024, serial: "M124060-9E0F1A2B", caliber: "3230",
+    label: "Omega Speedmaster",
+    brand: "Omega", model: "Speedmaster Moonwatch", reference: "310.30.42.50.01.001",
+    year: 2023, serial: `OM310-${Date.now().toString(36).toUpperCase()}`, caliber: "3861",
+    material: "Stainless Steel", dialColor: "Black", braceletType: "Bracelet",
+    caseDiameter: 42, appraisedValue: 6500, condition: "Excellent",
+    conditionNotes: "Full set with extract of archive, minor desk marks",
+    serviceCenter: "Omega Boutique Zurich", serviceWork: "Battery and pressure test",
+    fraud: false,
+  },
+  {
+    label: "AP Royal Oak",
+    brand: "Audemars Piguet", model: "Royal Oak", reference: "15500ST.OO.1220ST.01",
+    year: 2021, serial: `AP15500-${Date.now().toString(36).toUpperCase()}`, caliber: "4302",
+    material: "Stainless Steel", dialColor: "Blue", braceletType: "Integrated Bracelet",
+    caseDiameter: 41, appraisedValue: 35000, condition: "Very Good",
+    conditionNotes: "Complete set, light hairlines on bracelet and case",
+    serviceCenter: "AP Service Center Le Brassus", serviceWork: "Full service and polish",
+    fraud: false,
+  },
+];
+
+const FRAUD_PRESETS = [
+  {
+    label: "Wrong Caliber (Frankenwatch)",
+    brand: "Rolex", model: "Submariner Date", reference: "126610LN",
+    year: 2023, serial: `FRAUD-CAL-${Date.now().toString(36).toUpperCase()}`, caliber: "4130",
     material: "Oystersteel", dialColor: "Black", braceletType: "Oyster",
-    caseDiameter: 41, appraisedValue: 9800, condition: "Mint",
-    conditionNotes: "Unworn, stickers removed, full set with hang tags",
+    caseDiameter: 41, appraisedValue: 14500, condition: "Excellent",
+    conditionNotes: "Purchased from unauthorized dealer, no papers",
     serviceCenter: "", serviceWork: "",
+    fraud: true,
+  },
+  {
+    label: "Fake Material",
+    brand: "Rolex", model: "GMT-Master II", reference: "126710BLNR",
+    year: 2022, serial: `FRAUD-MAT-${Date.now().toString(36).toUpperCase()}`, caliber: "3285",
+    material: "Titanium", dialColor: "Black", braceletType: "Jubilee",
+    caseDiameter: 40, appraisedValue: 17200, condition: "Mint",
+    conditionNotes: "Seller claims special edition, no documentation",
+    serviceCenter: "", serviceWork: "",
+    fraud: true,
+  },
+  {
+    label: "Impossible Year",
+    brand: "Rolex", model: "Submariner Date", reference: "126610LN",
+    year: 2015, serial: `FRAUD-YR-${Date.now().toString(36).toUpperCase()}`, caliber: "3235",
+    material: "Oystersteel", dialColor: "Black", braceletType: "Oyster",
+    caseDiameter: 41, appraisedValue: 14500, condition: "Excellent",
+    conditionNotes: "Claims to be early release, no warranty card",
+    serviceCenter: "", serviceWork: "",
+    fraud: true,
   },
 ];
 
@@ -228,8 +274,8 @@ export default function DealerPage() {
 
           {/* Presets */}
           <div className="mb-6">
-            <p className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Quick presets</p>
-            <div className="flex gap-2 flex-wrap">
+            <p className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Authentic Watches</p>
+            <div className="flex gap-2 flex-wrap mb-4">
               {PRESETS.map((p, i) => (
                 <button
                   key={i}
@@ -238,6 +284,22 @@ export default function DealerPage() {
                     form.serial === p.serial
                       ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10"
                       : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-red-400/70 mb-2 uppercase tracking-wider">Fraud Test Cases</p>
+            <div className="flex gap-2 flex-wrap">
+              {FRAUD_PRESETS.map((p, i) => (
+                <button
+                  key={`fraud-${i}`}
+                  onClick={() => setForm(p)}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                    form.serial === p.serial
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : "bg-zinc-800 text-red-400/60 border border-red-500/20 hover:border-red-500/40"
                   }`}
                 >
                   {p.label}

@@ -13,29 +13,54 @@ export interface RuleReport {
   criticalFailures: string[];
 }
 
+// Multi-brand caliber → reference mapping
 const KNOWN_CALIBERS: Record<string, string[]> = {
-  "3235": ["126610LN", "126610LV", "126613LB", "124060"],
+  // Rolex
+  "3235": ["126610LN", "126610LV", "126613LB", "126611LN"],
   "3285": ["126710BLNR", "126710BLRO", "126720VTNR"],
   "4131": ["126500LN"],
-  "3230": ["124300"],
+  "3230": ["124300", "124060"],
+  // Omega
+  "3861": ["310.30.42.50.01.001", "310.30.42.50.01.002"],
+  "8900": ["210.30.42.20.01.001", "220.10.41.21.01.001"],
+  "9900": ["329.30.44.51.01.001"],
+  // Audemars Piguet
+  "4302": ["15500ST.OO.1220ST.01", "15510ST.OO.1320ST.01"],
+  "2385": ["26331ST.OO.1220ST.01"],
+  "4401": ["26240ST.OO.1220ST.01"],
 };
 
 const PRODUCTION_YEARS: Record<string, [number, number]> = {
+  // Rolex
   "126610LN": [2020, 2026],
   "126610LV": [2020, 2026],
+  "126611LN": [2020, 2026],
   "126710BLNR": [2019, 2026],
   "126710BLRO": [2023, 2026],
   "124060": [2020, 2026],
+  // Omega
+  "310.30.42.50.01.001": [2021, 2026],
+  "210.30.42.20.01.001": [2018, 2026],
+  // AP
+  "15500ST.OO.1220ST.01": [2019, 2026],
+  "15510ST.OO.1320ST.01": [2022, 2026],
 };
 
-const ROLEX_MATERIALS = [
-  "Oystersteel",
-  "Yellow Gold",
-  "White Gold",
-  "Everose Gold",
-  "Rolesor",
-  "Platinum",
-];
+// Brand-specific valid materials
+const BRAND_MATERIALS: Record<string, string[]> = {
+  "Rolex": [
+    "Oystersteel", "Yellow Gold", "White Gold", "Everose Gold",
+    "Rolesor", "Platinum",
+  ],
+  "Omega": [
+    "Stainless Steel", "Titanium", "Sedna Gold", "Moonshine Gold",
+    "Canopus Gold", "Bronze",
+  ],
+  "Audemars Piguet": [
+    "Stainless Steel", "Rose Gold", "Yellow Gold", "White Gold",
+    "Titanium", "Platinum", "Ceramic",
+  ],
+};
 
 export function validateWatch(watch: any): RuleReport {
   const results: RuleResult[] = [];
@@ -53,7 +78,7 @@ export function validateWatch(watch: any): RuleReport {
     weight: 0.2,
     reason: calOk
       ? `Caliber ${watch.movementCaliber} valid for Ref. ${watch.referenceNumber}`
-      : `Caliber ${watch.movementCaliber} does not match Ref. ${watch.referenceNumber}`,
+      : `Caliber ${watch.movementCaliber} does not match Ref. ${watch.referenceNumber} (expected: ${validCals.join("/")})`,
     critical: true,
   });
 
@@ -69,7 +94,7 @@ export function validateWatch(watch: any): RuleReport {
     weight: 0.15,
     reason: yrOk
       ? `Year ${watch.yearOfProduction} within valid range`
-      : `Year ${watch.yearOfProduction} outside production range for Ref. ${watch.referenceNumber}`,
+      : `Year ${watch.yearOfProduction} outside production range ${yr?.[0]}-${yr?.[1]} for Ref. ${watch.referenceNumber}`,
     critical: true,
   });
 
@@ -113,9 +138,9 @@ export function validateWatch(watch: any): RuleReport {
     critical: false,
   });
 
-  // 6. Material validation (brand-specific)
-  const matOk =
-    watch.brand !== "Rolex" || ROLEX_MATERIALS.includes(watch.caseMaterial);
+  // 6. Material validation (multi-brand)
+  const validMaterials = BRAND_MATERIALS[watch.brand];
+  const matOk = !validMaterials || validMaterials.includes(watch.caseMaterial);
   results.push({
     name: "material_valid",
     passed: matOk,

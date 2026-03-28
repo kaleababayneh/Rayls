@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LiveStats } from "@/components/LiveStats";
 
 export default function Home() {
   return (
@@ -118,14 +119,13 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Tech Stack */}
+      {/* Live Stats */}
       <div className="w-full max-w-5xl mx-auto py-16 border-t border-zinc-800/50">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <TechBadge label="AI Engine" value="Claude AI" sub="Real LLM scoring" />
-          <TechBadge label="Serial Proof" value="Merkle Tree" sub="On-chain verification" />
-          <TechBadge label="Bridge" value="Rayls Relayer" sub="Privacy to Public" />
-          <TechBadge label="Privacy" value="Sovereign Node" sub="Gasless EVM" />
-        </div>
+        <h2 className="text-2xl font-bold text-center mb-3">Live On-Chain Stats</h2>
+        <p className="text-zinc-500 text-center mb-8 max-w-lg mx-auto">
+          Real data from the Rayls Public Chain, updated every 10 seconds.
+        </p>
+        <LiveStats />
       </div>
 
       {/* CTA */}
@@ -227,12 +227,3 @@ function ArchCard({
   );
 }
 
-function TechBadge({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 text-center hover:border-zinc-700 transition-colors">
-      <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1.5">{label}</p>
-      <p className="text-lg font-bold text-emerald-400 mb-0.5">{value}</p>
-      <p className="text-xs text-zinc-600">{sub}</p>
-    </div>
-  );
-}
