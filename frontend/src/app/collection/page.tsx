@@ -42,6 +42,9 @@ export default function CollectionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [reselling, setReselling] = useState<number | null>(null);
+  const [resellPrice, setResellPrice] = useState("1");
+  const [resellSuccess, setResellSuccess] = useState("");
 
   useEffect(() => {
     loadRevealed();
@@ -142,15 +145,46 @@ export default function CollectionPage() {
     }
   }
 
+  async function handleResell(tokenId: number) {
+    setReselling(tokenId);
+    setResellSuccess("");
+    setError("");
+
+    try {
+      const res = await fetch("/api/resell", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tokenId, price: resellPrice }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setResellSuccess(`Token #${tokenId} listed for ${resellPrice} USDR! TX: ${data.txHash.slice(0, 18)}...`);
+      setReselling(null);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
+      setReselling(null);
+    }
+  }
+
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Collection</h1>
         <p className="text-zinc-400">
           Watches you&apos;ve purchased. Private metadata is revealed after
-          payment confirmation.
+          payment confirmation. You can resell any watch back on the marketplace.
         </p>
       </div>
+
+      {resellSuccess && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6 text-emerald-400 flex items-center gap-3 animate-fade-in">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {resellSuccess}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-400 flex items-center gap-3 animate-fade-in">
@@ -350,19 +384,46 @@ export default function CollectionPage() {
                 )}
               </div>
 
-              <div className="px-6 py-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
-                <span>Purchased: {w.purchasedAt}</span>
-                <a
-                  href={`${PUBLIC_EXPLORER}/address/${REVEAL_TRACKER_ADDRESS}`}
-                  target="_blank"
-                  rel="noopener"
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1"
-                >
-                  View on Explorer
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+              {/* Resell */}
+              <div className="px-6 py-4 bg-zinc-950 border-t border-zinc-800">
+                {reselling === w.tokenId ? (
+                  <div className="flex items-center gap-2 text-sm text-amber-400">
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Listing on marketplace...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="number"
+                        value={resellPrice}
+                        onChange={(e) => setResellPrice(e.target.value)}
+                        className="w-24 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+                        min="0.01"
+                        step="0.1"
+                      />
+                      <span className="text-xs text-zinc-500">USDR</span>
+                    </div>
+                    <button
+                      onClick={() => handleResell(w.tokenId)}
+                      className="px-4 py-1.5 bg-amber-500 text-zinc-950 rounded-lg text-sm font-semibold hover:bg-amber-400 transition-all"
+                    >
+                      Resell
+                    </button>
+                    <a
+                      href={`${PUBLIC_EXPLORER}/address/${REVEAL_TRACKER_ADDRESS}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors"
+                    >
+                      Explorer
+                    </a>
+                  </div>
+                )}
+                <p className="text-xs text-zinc-600 mt-2">Purchased: {w.purchasedAt}</p>
               </div>
             </div>
           ))}
