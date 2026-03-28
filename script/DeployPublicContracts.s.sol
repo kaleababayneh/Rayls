@@ -4,9 +4,10 @@ pragma solidity 0.8.24;
 import {Script, console} from "forge-std/Script.sol";
 import {LuxAttestation} from "../src/LuxAttestation.sol";
 import {RevealTracker} from "../src/RevealTracker.sol";
+import {AIReasoningLog} from "../src/AIReasoningLog.sol";
 
 /// @title DeployPublicContracts
-/// @notice Deploys LuxAttestation and RevealTracker to the Public Chain.
+/// @notice Deploys LuxAttestation, RevealTracker, and AIReasoningLog to the Public Chain.
 ///
 /// Usage:
 ///   source .env
@@ -24,11 +25,15 @@ contract DeployPublicContracts is Script {
         RevealTracker tracker = new RevealTracker();
         console.log("RevealTracker: ", address(tracker));
 
+        AIReasoningLog reasoning = new AIReasoningLog(oracleAddr);
+        console.log("AIReasoningLog:", address(reasoning));
+
         vm.stopBroadcast();
 
         console.log("");
         console.log("Add to .env:");
         console.log("  ATTESTATION_ADDRESS=%s", vm.toString(address(att)));
         console.log("  REVEAL_TRACKER_ADDRESS=%s", vm.toString(address(tracker)));
+        console.log("  REASONING_LOG_ADDRESS=%s", vm.toString(address(reasoning)));
     }
 }

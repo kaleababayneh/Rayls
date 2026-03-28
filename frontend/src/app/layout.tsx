@@ -18,7 +18,12 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "LuxVerify — Confidential Watch Authentication",
   description:
-    "AI-attested luxury watch authentication on Rayls Privacy Node. Mint, verify, and trade with confidence.",
+    "AI-attested luxury watch authentication on Rayls Privacy Node. Mint confidential NFTs, verify with Claude AI & Merkle proofs, and trade with metadata reveal on purchase.",
+  openGraph: {
+    title: "LuxVerify — Confidential Watch Authentication",
+    description: "AI-attested luxury watch verification on Rayls Privacy Node.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-950 text-zinc-100 min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-950 text-zinc-100 min-h-screen font-[family-name:var(--font-geist-sans)]`}
       >
         <Providers>
           <Navbar />

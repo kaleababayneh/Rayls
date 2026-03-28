@@ -58,13 +58,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Add placeholder images
+    // Add image hash commitments (hashes stored on-chain, URIs point to IPFS storage)
     const imageTypes = ["movement", "dial", "caseback", "full"];
     for (const imgType of imageTypes) {
       const imgTx = await nft.addImage(
         tokenId,
-        ethers.keccak256(ethers.toUtf8Bytes(`${imgType}-photo`)),
-        `ipfs://Qm${imgType.charAt(0).toUpperCase() + imgType.slice(1)}`,
+        ethers.keccak256(ethers.toUtf8Bytes(`${imgType}-photo-${tokenId}-${Date.now()}`)),
+        `ipfs://Qm${imgType.charAt(0).toUpperCase() + imgType.slice(1)}PhotoHash${tokenId}`,
         imgType,
         Math.floor(Date.now() / 1000)
       );

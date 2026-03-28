@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 
 const RPC_URL = "https://testnet-rpc.rayls.com";
 const MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS || "";
-// Simulate a buyer using the registered public chain key
+// Server-side buyer wallet (registered public chain key from onboarding)
 const BUYER_KEY = process.env.BUYER_PRIVATE_KEY || "";
 
 const ABI = [
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tx = await marketplace.buy(listingId, { value: listing.price });
-    const receipt = await tx.wait();
+    await tx.wait();
 
     return NextResponse.json({
       success: true,

@@ -5,9 +5,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /// @title LuxAttestation
-/// @notice Public chain attestation registry with Merkle serial verification.
-///         The AI oracle inspects watches on the Privacy Node and publishes
-///         attestations here — visible to anyone, without exposing private metadata.
+/// @notice Public chain attestation registry with Merkle serial verification
+///         and duplicate serial detection. The AI oracle inspects watches on the
+///         Privacy Node and publishes attestations here.
 contract LuxAttestation is Ownable {
 
     struct Attestation {
@@ -36,9 +36,15 @@ contract LuxAttestation is Ownable {
     mapping(string => bytes32) public serialRegistryRoots;
     address public oracle;
 
+    // Duplicate serial detection: serialHash → first tokenId that used it
+    mapping(bytes32 => uint256) public serialHashToToken;
+    // Flagged duplicates
+    mapping(uint256 => bool) public flaggedDuplicate;
+
     event Attested(uint256 indexed tokenId, string brand, string model, uint8 score, bool serialVerified);
     event Revoked(uint256 indexed tokenId);
     event RegistryUpdated(string brand, bytes32 newRoot);
+    event DuplicateDetected(uint256 indexed newTokenId, uint256 indexed originalTokenId, bytes32 serialHash);
 
     constructor(address _oracle) Ownable(msg.sender) {
         oracle = _oracle;
@@ -88,6 +94,21 @@ contract LuxAttestation is Ownable {
 
         bool serialOk = verifySerial(brand, serialLeaf, merkleProof);
 
+        // Duplicate serial detection
+        if (serialHashToToken[serialLeaf] != 0) {
+            uint256 originalToken = serialHashToToken[serialLeaf];
+            // Flag both tokens as duplicates
+            flaggedDuplicate[originalToken] = true;
+            flaggedDuplicate[tokenId] = true;
+            // Revoke the original attestation
+            if (attestations[originalToken].valid) {
+                attestations[originalToken].valid = false;
+                emit Revoked(originalToken);
+            }
+            emit DuplicateDetected(tokenId, originalToken, serialLeaf);
+        }
+        serialHashToToken[serialLeaf] = tokenId;
+
         attestations[tokenId] = Attestation(
             brand, model, referenceNumber, yearOfProduction,
             caseMaterial, conditionGrade,
@@ -105,6 +126,14 @@ contract LuxAttestation is Ownable {
     function revoke(uint256 tokenId) external onlyOracle {
         attestations[tokenId].valid = false;
         emit Revoked(tokenId);
+    }
+
+    function isDuplicate(uint256 tokenId) external view returns (bool) {
+        return flaggedDuplicate[tokenId];
+    }
+
+    function getSerialOwner(bytes32 serialHash) external view returns (uint256) {
+        return serialHashToToken[serialHash];
     }
 
     function isValid(uint256 tokenId) external view returns (bool) {

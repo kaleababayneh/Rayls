@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import {
   PRIVACY_NODE_RPC,
@@ -27,7 +27,6 @@ interface WatchInfo {
   attestationScore: number;
 }
 
-// Preset watch templates for quick minting
 const PRESETS = [
   {
     label: "Rolex Submariner Date",
@@ -39,7 +38,7 @@ const PRESETS = [
     serviceCenter: "Rolex Service Centre Geneva", serviceWork: "Full movement service",
   },
   {
-    label: "Rolex GMT-Master II (Batman)",
+    label: "GMT-Master II Batman",
     brand: "Rolex", model: "GMT-Master II", reference: "126710BLNR",
     year: 2022, serial: "M126710BLNR-1C2D3E4F", caliber: "3285",
     material: "Oystersteel", dialColor: "Black", braceletType: "Jubilee",
@@ -48,7 +47,7 @@ const PRESETS = [
     serviceCenter: "Watchfinder London", serviceWork: "Polish and pressure test",
   },
   {
-    label: "Rolex Submariner (No Date)",
+    label: "Submariner No Date",
     brand: "Rolex", model: "Submariner", reference: "124060",
     year: 2024, serial: "M124060-9E0F1A2B", caliber: "3230",
     material: "Oystersteel", dialColor: "Black", braceletType: "Oyster",
@@ -65,19 +64,9 @@ export default function DealerPage() {
   const [showMintForm, setShowMintForm] = useState(false);
   const [minting, setMinting] = useState(false);
   const [mintSuccess, setMintSuccess] = useState("");
-
-  // Form state
   const [form, setForm] = useState(PRESETS[0]);
 
-  useEffect(() => {
-    loadWatches();
-  }, []);
-
-  function applyPreset(idx: number) {
-    setForm(PRESETS[idx]);
-  }
-
-  async function loadWatches() {
+  const loadWatches = useCallback(async () => {
     if (!TOKEN_ADDRESS) {
       setError("TOKEN_ADDRESS not configured. Deploy LuxWatchNFT first.");
       setLoading(false);
@@ -139,7 +128,11 @@ export default function DealerPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadWatches();
+  }, [loadWatches]);
 
   async function handleMint() {
     setMinting(true);
@@ -156,8 +149,9 @@ export default function DealerPage() {
 
       if (!res.ok) throw new Error(data.error);
 
-      setMintSuccess(`Token #${data.tokenId} minted! TX: ${data.txHash.slice(0, 18)}...`);
+      setMintSuccess(`Token #${data.tokenId} minted successfully! TX: ${data.txHash.slice(0, 18)}...`);
       setShowMintForm(false);
+      setLoading(true);
       await loadWatches();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
@@ -170,52 +164,79 @@ export default function DealerPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  const attestedCount = watches.filter((w) => w.isAttested).length;
+  const pipelineSteps = [
+    { label: "Mint on Privacy Node", done: watches.length > 0 },
+    { label: "AI Attestation", done: attestedCount > 0 },
+    { label: "Bridge to Public", done: false },
+    { label: "List on Marketplace", done: false },
+    { label: "Buyer Reveal", done: false },
+  ];
+
   return (
     <div>
-      <div className="mb-8 flex items-start justify-between">
+      {/* Header */}
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Dealer Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-1">Dealer Dashboard</h1>
           <p className="text-zinc-400">
-            Mint confidential watch NFTs on the Privacy Node. The AI oracle will
-            automatically attest them.
+            Mint confidential watch NFTs on the Privacy Node. The AI oracle automatically attests them.
           </p>
         </div>
-        <button
-          onClick={() => setShowMintForm(!showMintForm)}
-          className="px-5 py-2.5 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-colors"
-        >
-          {showMintForm ? "Cancel" : "+ Mint Watch"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setLoading(true); loadWatches(); }}
+            className="p-2.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            title="Refresh"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setShowMintForm(!showMintForm)}
+            className="px-5 py-2.5 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all hover:shadow-lg hover:shadow-emerald-500/20"
+          >
+            {showMintForm ? "Cancel" : "+ Mint Watch"}
+          </button>
+        </div>
       </div>
 
+      {/* Alerts */}
       {mintSuccess && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6 text-emerald-400">
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6 text-emerald-400 flex items-center gap-3 animate-fade-in">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
           {mintSuccess}
         </div>
       )}
-
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-400">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-400 flex items-center gap-3 animate-fade-in">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           {error}
         </div>
       )}
 
       {/* Mint Form */}
       {showMintForm && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-8">
-          <h2 className="font-semibold text-lg mb-4">Mint New Watch</h2>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-8 animate-slide-up">
+          <h2 className="font-semibold text-lg mb-1">Mint New Watch</h2>
+          <p className="text-sm text-zinc-500 mb-5">Creates a confidential NFT on the Privacy Node with encrypted metadata.</p>
 
           {/* Presets */}
           <div className="mb-6">
-            <p className="text-xs text-zinc-500 mb-2">Quick presets:</p>
+            <p className="text-xs text-zinc-500 mb-2 uppercase tracking-wider">Quick presets</p>
             <div className="flex gap-2 flex-wrap">
               {PRESETS.map((p, i) => (
                 <button
                   key={i}
-                  onClick={() => applyPreset(i)}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  onClick={() => setForm(PRESETS[i])}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
                     form.serial === p.serial
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10"
                       : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600"
                   }`}
                 >
@@ -251,44 +272,110 @@ export default function DealerPage() {
 
           <button
             onClick={handleMint}
-            disabled={minting}
-            className="mt-6 px-6 py-3 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-colors disabled:opacity-50 w-full md:w-auto"
+            disabled={minting || !form.brand || !form.serial}
+            className="mt-6 px-6 py-3 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all disabled:opacity-50 disabled:hover:bg-emerald-500 w-full md:w-auto hover:shadow-lg hover:shadow-emerald-500/20"
           >
-            {minting ? "Minting on Privacy Node..." : "Mint Confidential NFT"}
+            {minting ? (
+              <span className="flex items-center gap-2 justify-center">
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Minting on Privacy Node...
+              </span>
+            ) : (
+              "Mint Confidential NFT"
+            )}
           </button>
+        </div>
+      )}
+
+      {/* Stats bar */}
+      {!loading && watches.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-zinc-100">{watches.length}</p>
+            <p className="text-xs text-zinc-500">Minted</p>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-emerald-400">{attestedCount}</p>
+            <p className="text-xs text-zinc-500">Attested</p>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-zinc-400">{watches.length - attestedCount}</p>
+            <p className="text-xs text-zinc-500">Pending</p>
+          </div>
         </div>
       )}
 
       {/* Watch Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-500 border-t-transparent" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+              <div className="skeleton h-5 w-24" />
+              <div className="skeleton h-6 w-40" />
+              <div className="skeleton h-4 w-32" />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="skeleton h-10" />
+                <div className="skeleton h-10" />
+                <div className="skeleton h-10" />
+                <div className="skeleton h-10" />
+              </div>
+              <div className="skeleton h-8 w-full" />
+            </div>
+          ))}
         </div>
       ) : watches.length === 0 ? (
-        <div className="text-center py-20 text-zinc-500">
-          <p className="text-lg mb-2">No watches minted yet</p>
-          <p className="text-sm">Click &quot;+ Mint Watch&quot; to create your first confidential watch NFT.</p>
+        <div className="text-center py-20">
+          <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <p className="text-lg text-zinc-400 mb-2">No watches minted yet</p>
+          <p className="text-sm text-zinc-600 mb-6">Create your first confidential watch NFT to get started.</p>
+          <button
+            onClick={() => setShowMintForm(true)}
+            className="px-5 py-2.5 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all"
+          >
+            + Mint Watch
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {watches.map((w) => (
-            <div key={w.tokenId} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
+            <div key={w.tokenId} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4 hover:border-zinc-700 transition-colors">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-emerald-400 font-medium">{w.brand}</p>
                   <h3 className="font-semibold text-lg">{w.model}</h3>
                   <p className="text-sm text-zinc-400">Ref. {w.reference} &middot; {w.year}</p>
                 </div>
-                <span className="text-xs text-zinc-500">#{w.tokenId}</span>
+                <span className="text-xs text-zinc-600 font-mono">#{w.tokenId}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-zinc-500">Serial</p><p className="font-mono text-xs">{w.serial}</p></div>
-                <div><p className="text-zinc-500">Caliber</p><p>{w.caliber}</p></div>
-                <div><p className="text-zinc-500">Material</p><p>{w.material}</p></div>
-                <div><p className="text-zinc-500">Condition</p><p>{w.condition}</p></div>
-                <div><p className="text-zinc-500">Photos</p><p>{w.imageCount}</p></div>
-                <div><p className="text-zinc-500">Services</p><p>{w.serviceCount}</p></div>
+                <div><p className="text-zinc-500 text-xs">Serial</p><p className="font-mono text-xs truncate">{w.serial}</p></div>
+                <div><p className="text-zinc-500 text-xs">Caliber</p><p className="text-sm">{w.caliber}</p></div>
+                <div><p className="text-zinc-500 text-xs">Material</p><p className="text-sm">{w.material}</p></div>
+                <div><p className="text-zinc-500 text-xs">Condition</p><p className="text-sm">{w.condition}</p></div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {w.imageCount} photos
+                </span>
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {w.serviceCount} services
+                </span>
               </div>
 
               <div className="pt-3 border-t border-zinc-800">
@@ -296,14 +383,18 @@ export default function DealerPage() {
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${
+                        className={`h-full rounded-full transition-all duration-500 ${
                           w.attestationScore >= 70 ? "bg-emerald-500" : w.attestationScore >= 50 ? "bg-amber-500" : "bg-red-500"
                         }`}
                         style={{ width: `${w.attestationScore}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium text-emerald-400">{w.attestationScore}/100</span>
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-400">ATTESTED</span>
+                    <span className={`text-sm font-medium ${w.attestationScore >= 70 ? "text-emerald-400" : w.attestationScore >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                      {w.attestationScore}/100
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-400 font-medium">
+                      ATTESTED
+                    </span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
@@ -317,19 +408,35 @@ export default function DealerPage() {
         </div>
       )}
 
+      {/* Pipeline Status */}
       <div className="mt-12 bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-        <h2 className="font-semibold mb-4">Pipeline Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {[
-            { label: "Mint on Privacy Node", status: watches.length > 0 },
-            { label: "AI Attestation", status: watches.some((w) => w.isAttested) },
-            { label: "Bridge to Public", status: false },
-            { label: "List on Marketplace", status: false },
-            { label: "Buyer Reveal", status: false },
-          ].map((step, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${step.status ? "bg-emerald-500" : "bg-zinc-700"}`} />
-              <span className={`text-sm ${step.status ? "text-zinc-100" : "text-zinc-500"}`}>{step.label}</span>
+        <h2 className="font-semibold mb-6">Pipeline Status</h2>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-0">
+          {pipelineSteps.map((step, i) => (
+            <div key={i} className="flex items-center gap-0 flex-1">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                  step.done
+                    ? "bg-emerald-500 text-zinc-950"
+                    : "bg-zinc-800 text-zinc-500 border border-zinc-700"
+                }`}>
+                  {step.done ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span className={`text-sm whitespace-nowrap ${step.done ? "text-zinc-100" : "text-zinc-500"}`}>
+                  {step.label}
+                </span>
+              </div>
+              {i < pipelineSteps.length - 1 && (
+                <div className={`hidden md:block flex-1 h-px mx-4 ${
+                  step.done ? "bg-emerald-500/40" : "bg-zinc-800"
+                }`} />
+              )}
             </div>
           ))}
         </div>
@@ -345,12 +452,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs text-zinc-500 mb-1">{label}</label>
+      <label className="block text-xs text-zinc-500 mb-1.5">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-colors placeholder:text-zinc-600"
       />
     </div>
   );
