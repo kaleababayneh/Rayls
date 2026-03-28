@@ -171,8 +171,8 @@ async function main() {
               );
 
               if (canAutoList) {
-                const watchData = await watchNFT.getWatchData(tokenId);
-                const priceWei = ethers.parseEther(String(Number(watchData.appraisedValue)));
+                // Use a testnet-friendly price (1 USDR) since buyer wallets have limited funds
+                const priceWei = ethers.parseEther("1");
 
                 await autoList(
                   tokenId, listerWallet!, oracleWallet, config.mirrorNftAddress,
