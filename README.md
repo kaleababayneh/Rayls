@@ -1,214 +1,209 @@
 # LuxVerify
 
-Confidential luxury watch authentication on Rayls. Watches are minted as private NFTs, validated by an AI oracle, and sold on a public marketplace with metadata reveal on purchase.
+Confidential watch authentication on Rayls.
+
+LuxVerify turns a luxury watch into a confidential NFT on a Rayls Privacy Node, runs an AI-assisted authenticity workflow, publishes a public attestation on the Rayls Public Chain, and reveals private metadata only after a buyer completes a purchase.
 
 **Track:** Confidential NFT Reveal  
-**Chain:** Rayls Testnet (Privacy Node 800005 + Public Chain 7295799)
+**Primary chains:** Privacy Node `800005`, Public Chain `7295799`  
+**Frontend:** Next.js 14 + Tailwind + TypeScript  
+**Contracts:** Foundry + Solidity `0.8.24`
 
 ---
 
-## By the Numbers
+## Snapshot
 
-| Metric | Value | Source |
-|--------|-------|--------|
-| Global counterfeit watch market | $4.5 billion/year | Swiss Customs, Federation of the Swiss Watch Industry |
-| Estimated fake watches in circulation | 40 million units | OECD/EUIPO Illicit Trade Report |
-| Average resale premium on authenticated vs. unauthenticated | 23-31% | Chrono24 Market Study 2024 |
-| LuxVerify AI accuracy (rule engine + LLM combined) | 97%+ | Internal testing across 200+ reference/caliber pairs |
-| Time from mint to on-chain attestation | < 3 seconds | Measured on Rayls Testnet |
-| On-chain data per attestation | 18 fields | Brand, model, ref, year, serial, caliber, material, condition, provenance hash, metadata hash, AI score, serial verification, image count, service count, owner count, hold days, summary, timestamp |
+| Who is this for? | What they get |
+| --- | --- |
+| Dealers | A private mint flow for watch metadata, provenance, service records, and image commitments |
+| Buyers | A public certificate with AI score, serial verification status, and reveal only after payment |
+| Developers | A full-stack Rayls reference app spanning private NFTs, public attestations, marketplace flows, and an oracle agent |
+
+| Core idea | Why it matters |
+| --- | --- |
+| Keep sensitive watch data private at mint time | Dealers do not need to expose serials, service notes, or internal evidence before sale |
+| Publish only the attestation outcome publicly | Buyers still get a tradable, auditable certificate and marketplace flow |
+| Reveal only after purchase | Confidential metadata becomes a buyer entitlement, not a public leak |
+
+---
+
+## Why now
+
+The problem is real, and the market is large:
+
+- Bain estimated the **personal luxury goods** market at **EUR 363 billion in 2024**, while total luxury spending remained near **EUR 1.5 trillion**. Luxury authentication is not a niche workflow anymore; it sits inside a massive global category. [Bain, 2024](https://www.bain.com/insights/luxury-in-transition-securing-future-growth/)
+- The Federation of the Swiss Watch Industry reported **CHF 24.8 billion** in Swiss watch exports for **full-year 2024**. Even a narrow slice of high-value watch transactions represents meaningful volume. [FH statistics](https://www.fhs.swiss/statistics.html)
+- OECD and EUIPO estimated counterfeit and pirated trade at **USD 467 billion**, or **2.3% of global trade**, based on 2021 data published in 2025. Counterfeit infrastructure is already industrial scale. [OECD/EUIPO, 2025](https://www.oecd.org/en/blogs/2025/10/the-real-cost-of-counterfeits-is-higher-than-you-think.html)
+- Deloitte’s **October 8, 2025** Swiss Watch Industry Study surveyed **6,500 consumers** and **111 executives**, underscoring how much watch buying now depends on trust, provenance, and secondary-market confidence. [Deloitte, 2025](https://www.deloitte.com/ch/en/Industries/consumer/perspectives/swiss-watch-industry-study.html)
+
+LuxVerify sits directly at that intersection: private evidence, public trust, and resale-ready attestations.
+
+---
+
+## End User View
+
+### Dealer flow
+
+1. Open the dealer dashboard.
+2. Mint a confidential watch NFT with brand, model, reference, serial, caliber, condition, valuation, service notes, and image commitments.
+3. Wait for the oracle to detect the mint and score it.
+4. Bridge the NFT to the public chain.
+5. List the mirrored NFT on the marketplace.
+
+### Buyer flow
+
+1. Browse marketplace listings on the public chain.
+2. Check the public attestation before buying.
+3. Purchase with USDR.
+4. Receive the mirrored NFT and trigger reveal.
+5. Access the previously private metadata in the collection flow.
+
+### Verifier flow
+
+1. Enter a token ID on `/verify`.
+2. Inspect public summary fields.
+3. Read the AI score and explanation.
+4. Check whether the serial passed the Merkle-root registry test.
+5. Review duplicate or revoked status if applicable.
+
+---
+
+## Private vs Public
+
+| Layer | Data stored there | Why it lives there |
+| --- | --- | --- |
+| Privacy Node | Serial number, caliber, dial details, service records, image commitments, provenance chain | These are the sensitive facts most likely to leak dealer inventory intelligence or enable copying |
+| Public Chain | Attestation summary, AI score, serial verification result, listing status, reveal status | These are the facts buyers need before purchase |
+
+The design goal is simple: **keep proof private until the buyer has earned the right to see it**.
 
 ---
 
 ## Architecture
 
-```
-Privacy Node (gasless EVM)              Public Chain (USDR gas)
-+-------------------------+            +---------------------------+
-| LuxWatchNFT.sol         |--bridge--->| LuxAttestation.sol        |
-| ERC-721 with encrypted  | (relayer)  | AI scores + Merkle serial |
-| watch metadata           |            |                           |
-+-------------------------+            | Marketplace.sol           |
-                                       | ERC-721 escrow, USDR      |
-                                       |                           |
-                                       | RevealTracker.sol         |
-                                       +---------------------------+
-                                                  ^
-                                       +----------+----------+
-                                       | AI Oracle Agent      |
-                                       | polls privacy node,  |
-                                       | validates, attests,  |
-                                       | bridges, lists       |
-                                       +----------------------+
-                                                  ^
-                                       +----------+----------+
-                                       | Frontend (Next.js)   |
-                                       | ethers + wagmi       |
-                                       +----------------------+
-```
+```mermaid
+flowchart LR
+    D["Dealer"]
+    P["LuxWatchNFT.sol<br/>Privacy Node"]
+    O["Oracle Agent<br/>eth_getLogs polling"]
+    A["LuxAttestation.sol<br/>Public Chain"]
+    M["Marketplace.sol<br/>USDR escrow"]
+    R["RevealTracker.sol<br/>Public Chain"]
+    B["Buyer"]
 
-**Privacy Node** -- stores the actual watch data. Serial numbers, caliber, service history, image hashes. All invisible to the public chain. Gasless transactions.
-
-**Public Chain** -- stores attestation results. AI score, Merkle serial verification status, marketplace listings. Uses USDR for gas.
-
-**Rayls Bridge** -- relayer locks the NFT on the privacy node and mints a mirror on the public chain. Takes 30-60 seconds.
-
----
-
-## How It Works
-
-**1. Mint** -- Dealer creates a confidential NFT on the Privacy Node with 18+ metadata fields: brand, model, reference number, year, serial, caliber, case material, dial color, bracelet type, case diameter, appraised value, condition, condition notes, images (hash commitments), service records, and provenance chain.
-
-**2. Validate** -- The oracle agent detects the mint event within 3 seconds. It reads the private metadata and runs:
-- 7 deterministic rule checks (caliber-reference match, year-reference match, material validation, case diameter check, serial format, image count, service history)
-- Claude AI analysis (contextual assessment, risk flagging, holistic scoring)
-- Merkle proof verification against a known serial registry
-- Duplicate serial detection across all previously attested tokens
-- Combined score: 60% rule engine + 40% LLM
-
-**3. Attest** -- Score, summary, and serial verification status are written to `LuxAttestation.sol` on the Public Chain. Full reasoning log (individual rule results, LLM findings, risk flags) is stored in `AIReasoningLog.sol`. Both are publicly auditable.
-
-**4. Bridge** -- Oracle transfers the NFT from deployer to registered address, then calls `teleportToPublicChain()`. The relayer mints a mirror ERC-721 on the public chain.
-
-**5. List** -- Oracle approves the marketplace contract and calls `list()` with assetType=1 (ERC-721).
-
-**6. Buy & Reveal** -- Buyer purchases with USDR. Oracle detects the `Bought` event, calls `requestReveal()` + `confirmReveal()` on `RevealTracker.sol`. Private metadata becomes accessible to the buyer.
-
----
-
-## Smart Contracts
-
-| Contract | Chain | Purpose |
-|----------|-------|---------|
-| `LuxWatchNFT.sol` | Privacy Node | ERC-721 extending RaylsErc721Handler. Stores encrypted watch metadata, images, services, provenance. |
-| `LuxAttestation.sol` | Public Chain | Attestation records with Merkle serial verification. Duplicate detection, revocation. |
-| `RevealTracker.sol` | Public Chain | Tracks reveal status per token. Request/confirm pattern. |
-| `Marketplace.sol` | Public Chain | ERC-721 marketplace with USDR escrow. From the Rayls starter kit. |
-| `AIReasoningLog.sol` | Public Chain | Full reasoning log: rule names, pass/fail, reasons, LLM findings, risk flags, scores. |
-
----
-
-## Project Structure
-
-```
-.
-+-- src/                          # Solidity contracts
-|   +-- LuxWatchNFT.sol
-|   +-- LuxAttestation.sol
-|   +-- RevealTracker.sol
-|   +-- Marketplace.sol
-|   +-- AIReasoningLog.sol
-+-- script/                       # Forge deployment scripts
-|   +-- DeployLuxWatch.s.sol
-|   +-- DeployPublicContracts.s.sol
-|   +-- MintWatch.s.sol
-|   +-- BridgeWatch.s.sol
-|   +-- ListWatch.s.sol
-+-- agent/                        # AI Oracle (TypeScript)
-|   +-- src/
-|       +-- index.ts              # Main poll loop
-|       +-- merkle.ts             # Merkle tree builder
-|       +-- validator/
-|           +-- rules.ts          # 7 deterministic checks
-|           +-- llm.ts            # Claude API integration
-|           +-- scorer.ts         # 60/40 weighted scoring
-|   +-- data/
-|       +-- serial-registry.json  # Known serial numbers
-+-- frontend/                     # Next.js 14 (TypeScript)
-|   +-- src/
-|       +-- app/
-|           +-- page.tsx          # Landing (tunnel hero + watch showcase)
-|           +-- dealer/           # Mint watches, view attestation status
-|           +-- marketplace/      # Browse and buy attested watches
-|           +-- verify/           # Token lookup with full reasoning log
-|           +-- collection/       # Revealed watches post-purchase
-|           +-- activity/         # Live oracle event feed
-|           +-- certificate/      # Per-token certificate view
-|       +-- components/
-|           +-- ui/               # shadcn components (button, tunnel-hero, checkout)
-|           +-- Navbar.tsx
-|           +-- LiveStats.tsx
-|           +-- WatchCard.tsx
-|       +-- lib/
-|           +-- contracts.ts      # RPC endpoints, contract addresses
-|           +-- providers.tsx     # Wagmi + React Query
-|           +-- utils.ts          # cn() utility
-+-- docs/
-|   +-- CONTRACTS.md              # Full contract reference
-+-- .env                          # Chain credentials
-+-- foundry.toml
+    D -->|Mint confidential NFT| P
+    P -->|Mint event| O
+    O -->|Rules + LLM + Merkle proof| A
+    O -->|Bridge + list| M
+    B -->|Buy| M
+    M -->|Purchase event| O
+    O -->|requestReveal + confirmReveal| R
+    R -->|Revealed metadata available| B
 ```
 
 ---
 
-## Setup
+## Technical View
 
-### Prerequisites
-- Node.js 18+
-- Foundry (`forge`, `cast`)
-- A deployer private key (`cast wallet new`)
+### Smart contracts
 
-### 1. Clone and install
+| Contract | Chain | Role |
+| --- | --- | --- |
+| `src/LuxWatchNFT.sol` | Privacy Node | Confidential ERC-721 storing core watch data, images, service records, and provenance |
+| `src/LuxAttestation.sol` | Public Chain | Attestation registry with Merkle serial verification and duplicate detection |
+| `src/RevealTracker.sol` | Public Chain | Reveal state machine after purchase |
+| `src/Marketplace.sol` | Public Chain | Marketplace escrow and listing logic from the Rayls starter |
+| `src/AIReasoningLog.sol` | Public Chain | Full reasoning storage for rules, LLM findings, risk flags, and score components |
+
+### Oracle agent
+
+The TypeScript agent in [`agent/src/index.ts`](./agent/src/index.ts) is the operational glue:
+
+- Polls events with `eth_getLogs`, not WebSockets
+- Rebuilds and publishes a Merkle root from [`agent/data/serial-registry.json`](./agent/data/serial-registry.json)
+- Runs **7 rule checks** in [`agent/src/validator/rules.ts`](./agent/src/validator/rules.ts)
+- Weights the final result **60% rules / 40% LLM** in [`agent/src/validator/scorer.ts`](./agent/src/validator/scorer.ts)
+- Writes public attestations and reveal events
+
+### Frontend
+
+The frontend under [`frontend/`](./frontend) already has the right baseline stack:
+
+| Capability | Status |
+| --- | --- |
+| TypeScript | Present |
+| Tailwind CSS | Present |
+| Next.js App Router | Present |
+| `@/*` path alias | Present |
+| `src/` layout | Present |
+| shadcn-compatible `ui` folder | Present after current setup under `frontend/src/components/ui` |
+
+Important path notes:
+
+- The correct component path in this repo is **`frontend/src/components/ui`**, not repo-root `/components/ui`, because `@/*` maps to `frontend/src/*`.
+- The global styles entry is **`frontend/src/app/globals.css`**.
+- A minimal shadcn manifest now lives at **`frontend/components.json`**.
+
+If you want to continue using the shadcn CLI from here:
 
 ```bash
-git clone https://github.com/raylsnetwork/rayls-hackathon-starter
-cd rayls-hackathon-starter
+cd frontend
+npx shadcn@latest add button
+```
+
+That keeps imports stable as `@/components/ui/...` and avoids splitting primitives between `src/components` and a separate root-level folder.
+
+---
+
+## Codebase Audit
+
+This repo is strong on the core demo path, but there are a few implementation details worth knowing if you are extending it:
+
+- The privacy NFT, attestation contract, reveal tracker, marketplace flow, and event-polling oracle are all present.
+- The validator logic is concrete, not placeholder logic: caliber/reference, production year, material validation, service-history consistency, image count, and related checks are implemented.
+- The LLM adapter currently calls **Anthropic** in [`agent/src/validator/llm.ts`](./agent/src/validator/llm.ts). If your target architecture requires OpenAI/Codex specifically, that file is the swap point.
+- The bridge and listing flow are still operationally sensitive, because Rayls mirror deployment is asynchronous and depends on registered-user setup and token approval.
+
+---
+
+## Quick Start
+
+### 1. Install dependencies
+
+```bash
 forge install
 npm install
-cp .env.example .env
+cd frontend && npm install
+cd ../agent && npm install
 ```
 
-### 2. Configure .env
+### 2. Configure environment
 
-Fill in the chain credentials from the AGENTS.md file. Generate a deployer key:
+Use the values in [`AGENTS.md`](./AGENTS.md) as the source of truth.
 
-```bash
-cast wallet new
+Required high-signal vars:
+
+```env
+PRIVACY_NODE_RPC_URL=...
+PUBLIC_CHAIN_RPC_URL=...
+DEPLOYER_PRIVATE_KEY=...
+REGISTERED_PRIVATE_KEY=...
+TOKEN_ADDRESS=...
+ATTESTATION_ADDRESS=...
+REVEAL_TRACKER_ADDRESS=...
+MARKETPLACE_ADDRESS=...
 ```
 
-### 3. Register user
+### 3. Register the Rayls user and token
+
+Follow the onboarding and token-registration sequence in [`AGENTS.md`](./AGENTS.md). That file already includes the exact `curl` requests and ordering constraints.
+
+### 4. Deploy
 
 ```bash
-source .env
-
-curl -X POST "$BACKEND_URL/api/user/onboarding" \
-  -H "Authorization: Bearer $USER_AUTH_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"external_user_id": "luxverify-team"}' | jq
-
-# Update REGISTERED_PRIVATE_KEY, MINT_RECIPIENT, TRANSFER_TO in .env
-source .env
-
-curl -X PATCH "$BACKEND_URL/api/operator/onboarding/status" \
-  -H "Authorization: Bearer $OPERATOR_AUTH_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"external_user_id\":\"luxverify-team\",\"public_address\":\"$TRANSFER_TO\",\"private_address\":\"$MINT_RECIPIENT\",\"new_status\":1}"
-```
-
-### 4. Deploy contracts
-
-```bash
-# Privacy Node
 forge script script/DeployLuxWatch.s.sol --rpc-url $PRIVACY_NODE_RPC_URL --broadcast --legacy
-# Update TOKEN_ADDRESS in .env, then source .env
-
-# Register token
-curl -X POST "$BACKEND_URL/api/user/tokens" \
-  -H "Authorization: Bearer $USER_AUTH_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"LuxVerify Watch\",\"symbol\":\"LUXW\",\"address\":\"$TOKEN_ADDRESS\",\"uri\":\"\",\"standard\":2}"
-sleep 5
-curl -X PATCH "$BACKEND_URL/api/operator/tokens/status" \
-  -H "Authorization: Bearer $OPERATOR_AUTH_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"address\":\"$TOKEN_ADDRESS\",\"status\":1}"
-sleep 60
-
-# Public Chain
 forge script script/DeployPublicContracts.s.sol --rpc-url $PUBLIC_CHAIN_RPC_URL --broadcast --legacy
 forge script script/DeployMarketplace.s.sol --rpc-url $PUBLIC_CHAIN_RPC_URL --broadcast --legacy
-# Update ATTESTATION_ADDRESS, REVEAL_TRACKER_ADDRESS, MARKETPLACE_ADDRESS in .env
-source .env
 ```
 
 ### 5. Generate ABIs
@@ -216,84 +211,105 @@ source .env
 ```bash
 forge build
 mkdir -p agent/src/abis
-cat out/LuxWatchNFT.sol/LuxWatchNFT.json | jq '.abi' > agent/src/abis/LuxWatchNFT.json
-cat out/LuxAttestation.sol/LuxAttestation.json | jq '.abi' > agent/src/abis/LuxAttestation.json
-cat out/RevealTracker.sol/RevealTracker.json | jq '.abi' > agent/src/abis/RevealTracker.json
-cat out/Marketplace.sol/Marketplace.json | jq '.abi' > agent/src/abis/Marketplace.json
+mkdir -p frontend/src/lib/abis
 ```
 
-### 6. Start the oracle
+Then export the contract ABIs into both the agent and frontend folders.
+
+### 6. Run
 
 ```bash
-cd agent
-npm install
-npm start
+cd agent && npm start
+cd ../frontend && npm run dev
 ```
 
-### 7. Mint a watch (separate terminal)
+---
 
-```bash
-cd ..
-forge script script/MintWatch.s.sol --rpc-url $PRIVACY_NODE_RPC_URL --broadcast --legacy
+## User-facing Pages
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page and product narrative |
+| `/dealer` | Mint confidential watches and inspect pipeline status |
+| `/marketplace` | Browse and buy public-chain listings |
+| `/verify` | Token lookup and certificate inspection |
+| `/collection` | Revealed metadata after purchase |
+| `/activity` | Event feed for attestation, listing, purchase, reveal |
+
+---
+
+## File Map
+
+```text
+.
+├── agent/
+│   ├── data/serial-registry.json
+│   └── src/
+│       ├── index.ts
+│       ├── merkle.ts
+│       └── validator/
+├── docs/
+│   └── CONTRACTS.md
+├── frontend/
+│   ├── components.json
+│   └── src/
+│       ├── app/
+│       ├── components/
+│       │   └── ui/
+│       └── lib/
+├── script/
+└── src/
 ```
 
-### 8. Start the frontend
+---
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## Deep Dives
 
-Open `http://localhost:3000`.
+<details>
+<summary>Confidential NFT schema</summary>
+
+`LuxWatchNFT.sol` stores 19 core watch fields in `WatchData`, plus arrays for:
+
+- image commitments
+- service records
+- provenance entries
+
+This means the public attestation can stay compact while the private record remains rich enough for real verification workflows.
+
+</details>
+
+<details>
+<summary>What the oracle actually scores</summary>
+
+The rule engine currently checks:
+
+- caliber vs reference compatibility
+- production year plausibility
+- serial format sanity
+- service history vs age
+- condition vs age consistency
+- brand/material compatibility
+- image count adequacy
+
+Then the LLM adds contextual findings and risk flags before the scorer combines both outputs.
+
+</details>
+
+<details>
+<summary>Rayls-specific operational constraints</summary>
+
+- Privacy Node transactions must use `--legacy`
+- Mirror deployment can take **30 to 60 seconds**
+- The NFT must move from deployer to the registered address before `teleportToPublicChain()`
+- Public-chain operations use USDR for gas
+
+</details>
 
 ---
 
-## What's Real vs Mocked
+## Sources
 
-| Component | Status |
-|-----------|--------|
-| LuxWatchNFT on Privacy Node | Real -- deployed, minting works |
-| Rayls Bridge (relayer lock & mint) | Real -- teleport triggers mirror NFT |
-| LuxAttestation on Public Chain | Real -- on-chain attestation records |
-| Marketplace (ERC-721 + USDR) | Real -- starter kit marketplace |
-| RevealTracker | Real -- request/confirm pattern |
-| AI rule engine (7 checks) | Real -- deterministic validation |
-| AI LLM (Claude API) | Real -- contextual analysis |
-| Merkle serial verification | Real -- on-chain MerkleProof |
-| AIReasoningLog (on-chain) | Real -- full audit trail |
-| Images | Hash commitments real, IPFS URIs are placeholders |
-| ZK proofs | Simulated with Merkle proofs. Noir can be swapped in later. |
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Smart Contracts | Solidity 0.8.20, Foundry, OpenZeppelin |
-| Blockchain | Rayls Privacy Node (EVM, gasless), Rayls Public Chain (USDR gas) |
-| Oracle Agent | TypeScript, ethers.js v6, Claude API |
-| Frontend | Next.js 14, TypeScript, Tailwind CSS, ethers.js, wagmi, Three.js |
-| UI Components | shadcn/ui pattern (Button, custom tunnel hero, interactive checkout) |
-| Animations | Framer Motion, Three.js WebGL shaders |
-| Verification | Merkle proofs (OpenZeppelin MerkleProof), keccak256 hashing |
-
----
-
-## Chain Credentials (Testnet)
-
-| Parameter | Value |
-|-----------|-------|
-| Privacy Node RPC | `https://privacy-node-5.rayls.com` |
-| Privacy Node Chain ID | 800005 |
-| Privacy Explorer | `https://blockscout-privacy-node-5.rayls.com` |
-| Public Chain RPC | `https://testnet-rpc.rayls.com` |
-| Public Chain ID | 7295799 |
-| Public Explorer | `https://testnet-explorer.rayls.com` |
-
----
-
-## License
-
-Built for the Rayls Hackathon. Confidential NFT Reveal track.
+- [Bain: Luxury in Transition, 2024](https://www.bain.com/insights/luxury-in-transition-securing-future-growth/)
+- [Federation of the Swiss Watch Industry: statistics portal](https://www.fhs.swiss/statistics.html)
+- [OECD/EUIPO: counterfeit trade scale, 2025 summary](https://www.oecd.org/en/blogs/2025/10/the-real-cost-of-counterfeits-is-higher-than-you-think.html)
+- [Deloitte Swiss Watch Industry Study 2025](https://www.deloitte.com/ch/en/Industries/consumer/perspectives/swiss-watch-industry-study.html)
