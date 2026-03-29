@@ -10,6 +10,7 @@ import {
 } from "@/lib/contracts";
 import LuxWatchNFTAbi from "@/lib/abis/LuxWatchNFT.json";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
+import CubeLoader from "@/components/ui/cube-loader";
 
 interface WatchInfo {
   tokenId: number;
@@ -372,22 +373,10 @@ export default function DealerPage() {
 
       {/* Watch Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
-              <div className="skeleton h-5 w-24" />
-              <div className="skeleton h-6 w-40" />
-              <div className="skeleton h-4 w-32" />
-              <div className="grid grid-cols-2 gap-3">
-                <div className="skeleton h-10" />
-                <div className="skeleton h-10" />
-                <div className="skeleton h-10" />
-                <div className="skeleton h-10" />
-              </div>
-              <div className="skeleton h-8 w-full" />
-            </div>
-          ))}
-        </div>
+        <CubeLoader
+          message="Syncing Watches"
+          subMessage={`Reading confidential NFTs from Privacy Node${TOKEN_ADDRESS ? ` · token ${TOKEN_ADDRESS.slice(0, 10)}…` : ""}`}
+        />
       ) : watches.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">

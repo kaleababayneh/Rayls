@@ -10,6 +10,7 @@ import {
 } from "@/lib/contracts";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
 import AIReasoningLogAbi from "@/lib/abis/AIReasoningLog.json";
+import CubeLoader from "@/components/ui/cube-loader";
 
 interface AttestationData {
   brand: string;
@@ -168,7 +169,14 @@ export default function VerifyPage() {
         </button>
       </div>
 
-      {error && (
+      {loading && (
+        <CubeLoader
+          message="Verifying Token"
+          subMessage={`Querying AI attestation for Token #${tokenId} on Rayls Public Chain…`}
+        />
+      )}
+
+      {error && !loading && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6 text-red-400 flex items-center gap-3 animate-fade-in">
           <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -177,7 +185,7 @@ export default function VerifyPage() {
         </div>
       )}
 
-      {notFound && (
+      {!loading && notFound && (
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center animate-fade-in">
           <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
             <svg className="w-6 h-6 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

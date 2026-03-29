@@ -5,6 +5,116 @@
 :root {
   --background: #09090b;
   --foreground: #fafafa;
+
+  /* DataGridHero color palette (HSL channel values) */
+  --green: 152, 100%, 45%;
+  --pink: 300, 100%, 70%;
+  --cyan: 180, 100%, 55%;
+  --yellow: 50, 100%, 60%;
+  --orange: 25, 100%, 60%;
+  --gold: 45, 85%, 55%;
+}
+
+/* ── DataGridHero ─────────────────────────────────────────── */
+.data-grid-hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.grid-container {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  pointer-events: none;
+}
+
+.grid-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle 280px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(52, 211, 153, 0.05),
+    transparent 70%
+  );
+  opacity: var(--mouse-glow-opacity, 0);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.grid-cell {
+  border-radius: 1px;
+  opacity: var(--opacity-min, 0.02);
+}
+
+/* hero-content must be full-width so text-center works inside a flex parent */
+.hero-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  text-align: center;
+}
+
+@keyframes cell-pulse {
+  from { opacity: var(--opacity-min, 0.03); }
+  to   { opacity: var(--opacity-max, 0.5);  }
+}
+
+/* ── Luxury watch decorative elements ───────────────────────── */
+@keyframes watchTick {
+  0%, 100% { transform: rotate(0deg);   }
+  50%       { transform: rotate(6deg);  }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(52, 211, 153, 0.15); }
+  50%       { box-shadow: 0 0 28px rgba(52, 211, 153, 0.35); }
+}
+
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(100%);  opacity: 0; }
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.animate-watch-tick {
+  animation: watchTick 1s steps(1) infinite;
+  transform-origin: bottom center;
+}
+
+.animate-scan {
+  animation: scanLine 3s ease-in-out infinite;
+}
+
+/* Luxury card hover */
+.luxury-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.luxury-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(52, 211, 153, 0.08);
+}
+
+/* Gold shimmer text */
+.gold-text {
+  background: linear-gradient(90deg, #b8962a, #f0d060, #b8962a);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ── Luxury font for all headings ───────────────────────────── */
+h1, h2, h3, h4 {
+  font-family: var(--font-cormorant), "Garamond", "Times New Roman", serif;
+  letter-spacing: 0.01em;
 }
 
 html {
@@ -14,32 +124,71 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
+  /* Subtle page-wide grid — very low opacity, present on all pages */
+  background-image:
+    linear-gradient(rgba(52, 211, 153, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.025) 1px, transparent 1px);
+  background-size: 52px 52px;
+  background-attachment: fixed;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .animate-fade-in {
@@ -67,31 +216,61 @@ body {
 }
 
 /* Stagger children animations */
-.stagger-children > * {
+.stagger-children>* {
   opacity: 0;
   animation: fadeIn 0.4s ease-out forwards;
 }
-.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
-.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
-.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
-.stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 0.3s;
+}
+
+.stagger-children>*:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+.stagger-children>*:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+.stagger-children>*:nth-child(9) {
+  animation-delay: 0.45s;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #09090b;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #27272a;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
@@ -102,3 +281,61 @@ body {
   backdrop-filter: blur(12px);
   border: 1px solid rgba(63, 63, 70, 0.5);
 }
+
+/* ── CubeLoader 3D ─────────────────────────────────────────── */
+.cube-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@keyframes cubeSpin {
+  0%   { transform: rotateX(0deg) rotateY(0deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+/* Face breathe — translateZ is always "outward" because parent is already rotated */
+@keyframes cubeBreathe {
+  0%, 100% { transform: translateZ(48px); opacity: 0.8; }
+  50%       { transform: translateZ(80px); opacity: 0.4; border-color: rgba(255,255,255,0.8); }
+}
+
+@keyframes cubePulseFast {
+  0%, 100% { transform: scale(0.8); opacity: 0.5; }
+  50%       { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes cubeShadowBreathe {
+  0%, 100% { transform: scale(1);   opacity: 0.4; }
+  50%       { transform: scale(1.5); opacity: 0.2; }
+}
+
+.cube-spin         { animation: cubeSpin 8s linear infinite; }
+.cube-pulse-fast   { animation: cubePulseFast 2s ease-in-out infinite; }
+.cube-shadow-breathe { animation: cubeShadowBreathe 3s ease-in-out infinite; }
+
+/* Side wrapper: positions the face in 3D space */
+.cube-side-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* The actual face panel */
+.cube-face {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  animation: cubeBreathe 3s ease-in-out infinite;
+  backdrop-filter: blur(2px);
+}
+
+/* Face orientations — these MUST be on the wrapper, not the face */
+.cube-front  { transform: rotateY(0deg); }
+.cube-back   { transform: rotateY(180deg); }
+.cube-right  { transform: rotateY(90deg); }
+.cube-left   { transform: rotateY(-90deg); }
+.cube-top    { transform: rotateX(90deg); }
+.cube-bottom { transform: rotateX(-90deg); }

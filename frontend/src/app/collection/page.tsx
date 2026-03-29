@@ -14,6 +14,7 @@ import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
 import RevealTrackerAbi from "@/lib/abis/RevealTracker.json";
 import LuxWatchNFTAbi from "@/lib/abis/LuxWatchNFT.json";
 import Link from "next/link";
+import CubeLoader from "@/components/ui/cube-loader";
 
 interface RevealedWatch {
   tokenId: number;
@@ -196,22 +197,10 @@ export default function CollectionPage() {
       )}
 
       {loading ? (
-        <div className="space-y-6">
-          {[1, 2].map((i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <div className="skeleton h-4 w-20" />
-                  <div className="skeleton h-6 w-48" />
-                  <div className="skeleton h-4 w-36" />
-                </div>
-                <div className="skeleton h-8 w-24 rounded-full" />
-              </div>
-              <div className="skeleton h-24 w-full" />
-              <div className="skeleton h-16 w-full" />
-            </div>
-          ))}
-        </div>
+        <CubeLoader
+          message="Decrypting Collection"
+          subMessage="Fetching revealed watches from RevealTracker and Privacy Node…"
+        />
       ) : watches.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-5">

@@ -11,6 +11,7 @@ import {
 import MarketplaceAbi from "@/lib/abis/Marketplace.json";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
 import Link from "next/link";
+import CubeLoader from "@/components/ui/cube-loader";
 
 interface Listing {
   id: number;
@@ -146,20 +147,10 @@ export default function MarketplacePage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="aspect-video skeleton" />
-              <div className="p-6 space-y-3">
-                <div className="skeleton h-4 w-20" />
-                <div className="skeleton h-6 w-40" />
-                <div className="skeleton h-4 w-32" />
-                <div className="skeleton h-8 w-full" />
-                <div className="skeleton h-10 w-full" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <CubeLoader
+          message="Fetching Listings"
+          subMessage={`Scanning active listings on Rayls Public Chain${MARKETPLACE_ADDRESS ? ` · ${MARKETPLACE_ADDRESS.slice(0, 10)}…` : ""}`}
+        />
       ) : listings.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">

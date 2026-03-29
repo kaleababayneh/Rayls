@@ -10,6 +10,7 @@ import {
   PUBLIC_EXPLORER,
 } from "@/lib/contracts";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
+import CubeLoader from "@/components/ui/cube-loader";
 
 interface Activity {
   id: string;
@@ -293,17 +294,10 @@ export default function ActivityPage() {
       </div>
 
       {loading && activities.length === 0 ? (
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex items-center gap-4">
-              <div className="skeleton w-10 h-10 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <div className="skeleton h-4 w-48" />
-                <div className="skeleton h-3 w-32" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <CubeLoader
+          message="Scanning Chain"
+          subMessage="Fetching oracle events from the last 5 000 blocks on Rayls Public Chain…"
+        />
       ) : activities.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-4">

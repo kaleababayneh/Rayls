@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Watch } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home" },
@@ -21,11 +22,13 @@ export function Navbar() {
     <nav className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-zinc-950 font-bold text-sm">
-              LV
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-zinc-950 group-hover:bg-emerald-400 transition-colors">
+              <Watch className="w-4 h-4" strokeWidth={2.5} />
             </div>
-            <span className="font-semibold text-lg tracking-tight">LuxVerify</span>
+            <span className="font-semibold text-lg tracking-tight">
+              Lux<span className="text-emerald-400">Verify</span>
+            </span>
           </Link>
 
           {/* Desktop nav */}
