@@ -11,6 +11,7 @@ import {
 } from "@/lib/contracts";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
 import CubeLoader from "@/components/ui/cube-loader";
+import { AppleActivityCard } from "@/components/ui/apple-activity-ring";
 
 interface Activity {
   id: string;
@@ -261,8 +262,40 @@ export default function ActivityPage() {
     revoked: { label: "Revoked", color: "red", icon: "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" },
   };
 
+  // Compute ring data from loaded activities
+  const attestedCount = activities.filter((a) => a.type === "attested").length;
+  const marketCount = activities.filter((a) => a.type === "listed" || a.type === "purchased").length;
+  const revealedCount = activities.filter((a) => a.type === "revealed").length;
+  const totalEvents = activities.length;
+  const ringMax = Math.max(totalEvents, 1);
+
+  const rings = [
+    {
+      label: "Attested",
+      sublabel: "AI verdicts",
+      value: attestedCount,
+      max: ringMax,
+      color: "#34d399",
+    },
+    {
+      label: "Market",
+      sublabel: "listed + bought",
+      value: marketCount,
+      max: ringMax,
+      color: "#f59e0b",
+    },
+    {
+      label: "Revealed",
+      sublabel: "metadata unlocked",
+      value: revealedCount,
+      max: ringMax,
+      color: "#a78bfa",
+    },
+  ];
+
   return (
     <div className="max-w-3xl mx-auto">
+      {/* ── Page header ── */}
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Oracle Activity</h1>
@@ -292,6 +325,17 @@ export default function ActivityPage() {
           </button>
         </div>
       </div>
+
+      {/* ── Activity rings dashboard ── */}
+      {!loading && activities.length > 0 && (
+        <div className="mb-8 animate-fade-in">
+          <AppleActivityCard
+            rings={rings}
+            title="Chain Pulse"
+            subtitle={`Scanning the last 5 000 blocks · ${totalEvents} oracle events detected`}
+          />
+        </div>
+      )}
 
       {loading && activities.length === 0 ? (
         <CubeLoader

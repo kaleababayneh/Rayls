@@ -6,12 +6,35 @@ import {
   PUBLIC_CHAIN_RPC,
   MARKETPLACE_ADDRESS,
   ATTESTATION_ADDRESS,
-  PUBLIC_EXPLORER,
 } from "@/lib/contracts";
 import MarketplaceAbi from "@/lib/abis/Marketplace.json";
 import LuxAttestationAbi from "@/lib/abis/LuxAttestation.json";
 import Link from "next/link";
 import CubeLoader from "@/components/ui/cube-loader";
+import { ArticleCard } from "@/components/ui/article-cards";
+
+/* ── Watch image pool ─────────────────────────────────────── */
+const WATCH_IMAGES = [
+  "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1622434641406-a158123450f7?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1526045612212-70caf35c14df?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=640&h=400&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=640&h=400&fit=crop&q=80",
+];
+
+function getListingImage(tokenId: number) {
+  return WATCH_IMAGES[(tokenId - 1) % WATCH_IMAGES.length];
+}
+
+function getListingGradient(score?: number) {
+  if (score === undefined) return "from-zinc-900/85 to-zinc-950/95";
+  if (score >= 70) return "from-emerald-950/85 to-zinc-950/95";
+  if (score >= 50) return "from-amber-950/85 to-zinc-950/95";
+  return "from-red-950/85 to-zinc-950/95";
+}
 
 interface Listing {
   id: number;
@@ -170,106 +193,31 @@ export default function MarketplacePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
           {listings.map((l) => (
-            <div
+            <ArticleCard
               key={l.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-all group"
-            >
-              {/* Image placeholder */}
-              <div className="aspect-video bg-zinc-800 flex items-center justify-center relative overflow-hidden">
-                <span className="text-zinc-600 text-5xl font-light group-hover:scale-110 transition-transform duration-300">
-                  {l.brand?.charAt(0) || "?"}
-                </span>
-                {l.score !== undefined && (
-                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-zinc-900/80 backdrop-blur-sm text-emerald-400 text-xs font-medium">
-                    AI: {l.score}/100
-                  </div>
-                )}
-              </div>
-
-              <div className="p-6 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    {l.brand && (
-                      <p className="text-xs text-emerald-400 font-medium">{l.brand}</p>
-                    )}
-                    <h3 className="font-semibold text-lg">
-                      {l.model || `Token #${l.tokenId}`}
-                    </h3>
-                    {l.reference && (
-                      <p className="text-sm text-zinc-400">
-                        Ref. {l.reference} &middot; {l.year}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-xs text-zinc-600 font-mono">#{l.tokenId}</span>
-                </div>
-
-                {/* Tags */}
-                <div className="flex gap-2 flex-wrap">
-                  {l.material && (
-                    <span className="px-2 py-0.5 bg-zinc-800 rounded text-xs text-zinc-400">{l.material}</span>
-                  )}
-                  {l.condition && (
-                    <span className="px-2 py-0.5 bg-zinc-800 rounded text-xs text-zinc-400">{l.condition}</span>
-                  )}
-                  {l.serialVerified && (
-                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-xs rounded font-medium">
-                      SN Verified
-                    </span>
-                  )}
-                </div>
-
-                {/* Score bar */}
-                {l.score !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${l.score >= 70 ? "bg-emerald-500" : l.score >= 50 ? "bg-amber-500" : "bg-red-500"}`}
-                        style={{ width: `${l.score}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {l.summary && (
-                  <p className="text-xs text-zinc-500 line-clamp-2">{l.summary}</p>
-                )}
-
-                <div className="pt-3 border-t border-zinc-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xl font-bold text-emerald-400">
-                      {Number(l.price).toLocaleString()} USDR
-                    </p>
-                    <a
-                      href={`${PUBLIC_EXPLORER}/address/${l.token}`}
-                      target="_blank"
-                      rel="noopener"
-                      className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-                    >
-                      Explorer
-                    </a>
-                  </div>
-
-                  <button
-                    onClick={() => handleBuy(l)}
-                    disabled={buying !== null}
-                    className="w-full py-2.5 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-emerald-500/20"
-                  >
-                    {buying === l.id ? (
-                      <span className="flex items-center gap-2 justify-center">
-                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Purchasing...
-                      </span>
-                    ) : (
-                      `Buy for ${Number(l.price).toLocaleString()} USDR`
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
+              category={l.brand ?? "LUXURY WATCH"}
+              title={l.model ?? `Token #${l.tokenId}`}
+              subTitle={[
+                l.reference && `Ref. ${l.reference}`,
+                l.year && String(l.year),
+                l.material,
+                l.serialVerified && "SN Verified ✓",
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              price={Number(l.price)}
+              priceUnit="USDR"
+              imageUrl={getListingImage(l.tokenId)}
+              gradient={getListingGradient(l.score)}
+              badge={l.score !== undefined ? `AI ${l.score}/100` : undefined}
+              buttonLabel={
+                buying === l.id
+                  ? "Processing…"
+                  : `Buy · ${Number(l.price).toLocaleString()} USDR`
+              }
+              disabled={buying !== null}
+              onButtonClick={() => handleBuy(l)}
+            />
           ))}
         </div>
       )}

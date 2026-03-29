@@ -124,6 +124,7 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
+  overflow-x: hidden; /* prevent horizontal scroll from full-bleed hero */
   /* Subtle page-wide grid — very low opacity, present on all pages */
   background-image:
     linear-gradient(rgba(52, 211, 153, 0.025) 1px, transparent 1px),

@@ -1,18 +1,31 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { LiveStats } from "@/components/LiveStats";
-import DataGridHero from "@/components/ui/data-grid-hero";
+import { AnomalousMatterHero } from "@/components/ui/anomalous-matter-hero";
 import { CircularRevealHeading } from "@/components/ui/circular-reveal-heading";
+import { FluidTextMorph } from "@/components/ui/fluid-text-morph";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
 import {
-  Clock,
   Shield,
   Award,
   Gem,
-  ChevronRight,
   Lock,
   Eye,
   Zap,
-  CheckCircle2,
   ArrowRight,
+  Fingerprint,
+  Cpu,
+  GitMerge,
+  Unlock,
+  Server,
+  Globe,
+  Database,
+  FileKey,
+  Radio,
+  Layers,
+  ShoppingBag,
+  Coins,
 } from "lucide-react";
 
 /* ── Luxury watch images for CircularRevealHeading ── */
@@ -40,50 +53,36 @@ const watchItems = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col items-center">
 
-      {/* ── Hero with DataGridHero background ─────────────────── */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8">
-        <DataGridHero
-          rows={22}
-          cols={36}
-          spacing={6}
-          duration={6}
-          color="hsl(152, 100%, 55%)"
-          animationType="pulse"
-          pulseEffect={true}
-          mouseGlow={true}
-          opacityMin={0.02}
-          opacityMax={0.09}
-          background="#09090b"
-          className="min-h-[620px] flex items-center"
-        >
-          <div className="w-full max-w-5xl mx-auto px-6 py-24">
+      {/* ── Hero — full-bleed, Three.js wireframe sphere bg ───── */}
+      <section style={{ width: "100vw", marginLeft: "calc(-50vw + 50%)" }}>
+        <AnomalousMatterHero>
+          <div className="w-full max-w-4xl mx-auto px-6 py-28 flex flex-col items-center">
+
             {/* Live badge */}
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium tracking-wide uppercase">
+            <div className="mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium tracking-wide uppercase backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live on Rayls Testnet
               </div>
             </div>
 
             {/* Watch-face decorative ring */}
-            <div className="flex justify-center mb-8">
-              <div className="relative w-24 h-24 animate-glow-pulse">
+            <div className="flex justify-center mb-10">
+              <div className="relative w-20 h-20 animate-glow-pulse">
                 <div className="absolute inset-0 rounded-full border-2 border-emerald-500/30" />
                 <div className="absolute inset-2 rounded-full border border-emerald-500/15" />
                 {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
-                  <div
-                    key={deg}
-                    className="absolute inset-0 flex items-start justify-center"
-                    style={{ transform: `rotate(${deg}deg)` }}
-                  >
+                  <div key={deg} className="absolute inset-0 flex items-start justify-center" style={{ transform: `rotate(${deg}deg)` }}>
                     <div className={`mt-1.5 ${deg % 90 === 0 ? "w-0.5 h-2.5 bg-emerald-400/70" : "w-px h-1.5 bg-emerald-500/30"}`} />
                   </div>
                 ))}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Gem className="w-6 h-6 text-emerald-400" strokeWidth={1.5} />
+                  <Gem className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
                 </div>
                 <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
                   <div className="animate-scan w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
@@ -91,13 +90,17 @@ export default function Home() {
               </div>
             </div>
 
-            <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/70 mb-3 font-medium text-center">
+            <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/70 mb-4 font-medium text-center">
               Confidential NFT Authentication
             </p>
 
             <h1 className="text-5xl md:text-7xl font-bold mb-5 leading-[1.08] tracking-tight text-center">
               <span className="bg-gradient-to-br from-emerald-300 via-emerald-400 to-teal-500 bg-clip-text text-transparent">
-                Authenticate
+                <FluidTextMorph
+                  texts={["Authenticate", "Verify", "Protect", "Reveal"]}
+                  morphTime={1.1}
+                  cooldownTime={2.8}
+                />
               </span>
               <br />
               <span className="text-zinc-100">Luxury Watches</span>
@@ -107,31 +110,28 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="text-base md:text-lg text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed text-center">
+            <p className="text-base md:text-lg text-zinc-300/70 max-w-lg mx-auto mb-12 leading-relaxed text-center">
               AI-attested verification on Rayls Privacy Node. Mint confidential
-              NFTs, prove authenticity with Claude&nbsp;AI &amp; Merkle proofs,
+              NFTs, prove authenticity with Claude AI &amp; Merkle proofs,
               trade with metadata reveal on purchase.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/dealer"
-                className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all hover:shadow-lg hover:shadow-emerald-500/25 text-sm"
-              >
-                <Clock className="w-4 h-4" />
-                Mint a Watch
-                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-              <Link
-                href="/marketplace"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-zinc-700 text-zinc-300 rounded-lg font-semibold hover:bg-zinc-800/70 hover:border-zinc-600 transition-all text-sm"
-              >
-                Browse Marketplace
-              </Link>
+            {/* CTA buttons — liquid metal */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 mb-12">
+              <LiquidMetalButton
+                label="Mint a Watch"
+                width={160}
+                onClick={() => router.push("/dealer")}
+              />
+              <LiquidMetalButton
+                label="Marketplace"
+                width={154}
+                onClick={() => router.push("/marketplace")}
+              />
             </div>
 
             {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-5 mt-10 text-xs text-zinc-600">
+            <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-zinc-600">
               <span className="flex items-center gap-1.5">
                 <Shield className="w-3.5 h-3.5 text-emerald-500/50" />
                 Privacy-preserving
@@ -148,7 +148,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-        </DataGridHero>
+        </AnomalousMatterHero>
       </section>
 
       {/* ── How It Works — CircularRevealHeading ─────────────── */}
@@ -215,19 +215,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Live On-Chain Stats ───────────────────────────────── */}
+      {/* ── Oracle Intelligence (Live Stats) ─────────────────── */}
       <div className="w-full max-w-6xl mx-auto py-20 border-t border-zinc-800/50">
         <div className="text-center mb-12">
-          <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/60 mb-3">Network</p>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Live On-Chain Stats</h2>
-          <p className="text-zinc-500 text-sm max-w-sm mx-auto">
-            Real data from the Rayls Public Chain oracle — refreshed every 10 seconds.
+          <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/60 mb-3">Oracle Intelligence</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">Every Watch. Every Block. Every Proof.</h2>
+          <p className="text-zinc-500 text-sm max-w-md mx-auto">
+            The AI oracle never sleeps — attesting provenance, publishing Merkle proofs, and triggering
+            confidential reveals in real time across both chains.
           </p>
         </div>
 
         {/* Animated border card */}
         <div className="relative rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 overflow-hidden">
-          {/* Subtle corner accents */}
+          {/* Corner accents */}
           <div className="absolute top-0 left-0 w-16 h-px bg-gradient-to-r from-emerald-500/60 to-transparent" />
           <div className="absolute top-0 left-0 w-px h-16 bg-gradient-to-b from-emerald-500/60 to-transparent" />
           <div className="absolute bottom-0 right-0 w-16 h-px bg-gradient-to-l from-emerald-500/60 to-transparent" />
@@ -237,102 +238,203 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-xs text-emerald-400 font-medium tracking-wide uppercase">
-                Oracle Live
+                Oracle Heartbeat
               </span>
             </div>
             <span className="text-xs text-zinc-600 font-mono">
-              Rayls Public Chain · ID 7295799
+              Rayls Public Chain · Chain ID 7295799
             </span>
           </div>
 
           <LiveStats />
 
           <p className="text-center text-xs text-zinc-700 mt-6">
-            Powered by Claude AI oracle running on Rayls Privacy Node infrastructure
+            Claude AI oracle · Merkle serial registry · Confidential NFT reveal · Rayls Privacy Infrastructure
           </p>
         </div>
       </div>
 
-      {/* ── Architecture ─────────────────────────────────────────── */}
+      {/* ── Two-Chain Architecture ─────────────────────────────── */}
       <div className="w-full max-w-6xl mx-auto py-20 border-t border-zinc-800/50">
-        <div className="text-center mb-12">
+        <div className="text-center mb-14">
           <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/60 mb-3">Infrastructure</p>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">Two-Chain Architecture</h2>
-          <p className="text-zinc-500 text-sm max-w-sm mx-auto">
+          <p className="text-zinc-500 text-sm max-w-sm mx-auto leading-relaxed">
             Privacy where you need it, transparency where it matters.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <ArchCard
-            chain="Privacy Node"
-            chainId="800002"
-            color="emerald"
-            items={[
-              "Confidential watch metadata",
-              "Serial numbers & caliber data",
-              "Service history & provenance",
-              "Image hash commitments",
-              "Gasless transactions",
-            ]}
-          />
-          <ArchCard
-            chain="Public Chain"
-            chainId="7295799"
-            color="blue"
-            items={[
-              "AI attestation scores",
-              "Merkle serial verification",
-              "ERC-721 marketplace",
-              "USDR token payments",
-              "Reveal tracking",
-            ]}
-          />
+        {/* Main architecture diagram */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_120px_1fr] items-stretch gap-0">
+
+          {/* ── Privacy Node ── */}
+          <div className="relative rounded-2xl md:rounded-r-none border border-emerald-500/20 bg-gradient-to-br from-emerald-950/25 via-zinc-950 to-zinc-950 p-7 overflow-hidden">
+            <div className="absolute -top-8 -left-8 w-40 h-40 bg-emerald-500/8 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Terminal header */}
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60 animate-pulse" />
+              </div>
+              <span className="ml-2 text-[10px] font-mono text-zinc-600 tracking-widest uppercase">privacy-node-5.rayls.com</span>
+            </div>
+
+            <div className="flex items-end justify-between mb-6 mt-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Server className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
+                  <h3 className="text-xl font-bold text-zinc-100 tracking-tight">Privacy Node</h3>
+                </div>
+                <p className="text-[10px] font-mono text-emerald-400/50 tracking-[0.15em] uppercase">sovereign · isolated · encrypted</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-600">Chain ID</span>
+                <span className="text-sm font-mono font-bold text-emerald-400">800002</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono uppercase tracking-widest">Gasless</span>
+              </div>
+            </div>
+
+            {/* Data items */}
+            <div className="space-y-1.5">
+              {[
+                { icon: Database, label: "Confidential watch metadata" },
+                { icon: FileKey, label: "Serial numbers & caliber data" },
+                { icon: Layers, label: "Service history & provenance" },
+                { icon: Radio, label: "Image hash commitments" },
+                { icon: Zap, label: "Gasless transactions" },
+              ].map(({ icon: Icon, label }, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-950/30 border border-emerald-500/8 group hover:border-emerald-500/20 transition-colors">
+                  <Icon className="w-3.5 h-3.5 text-emerald-500/60 flex-shrink-0" strokeWidth={1.5} />
+                  <span className="text-xs font-mono text-zinc-400 group-hover:text-zinc-300 transition-colors">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Bridge connector ── */}
+          <div className="flex flex-col md:flex-row items-center justify-center py-6 md:py-0 relative">
+            {/* Horizontal line (desktop) */}
+            <div className="hidden md:block absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-gradient-to-r from-emerald-500/30 via-zinc-500/20 to-blue-500/30" />
+
+            {/* Vertical line (mobile) */}
+            <div className="md:hidden w-px h-8 bg-gradient-to-b from-emerald-500/30 to-blue-500/30" />
+
+            {/* Centre pill */}
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl bg-zinc-900 border border-zinc-700/60 shadow-xl">
+                <ArrowRight className="w-4 h-4 text-zinc-400 hidden md:block" />
+                <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-500">Rayls</span>
+                <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-zinc-500">Bridge</span>
+                {/* Animated packet dots */}
+                <div className="flex gap-1 mt-0.5">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-1 h-1 rounded-full bg-emerald-500/60 animate-pulse"
+                      style={{ animationDelay: `${i * 250}ms` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Vertical line (mobile) */}
+            <div className="md:hidden w-px h-8 bg-gradient-to-b from-blue-500/30 to-emerald-500/30" />
+          </div>
+
+          {/* ── Public Chain ── */}
+          <div className="relative rounded-2xl md:rounded-l-none border border-blue-500/20 bg-gradient-to-bl from-blue-950/25 via-zinc-950 to-zinc-950 p-7 overflow-hidden">
+            <div className="absolute -top-8 -right-8 w-40 h-40 bg-blue-500/8 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Terminal header */}
+            <div className="flex items-center gap-2 mb-1">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-500/60 animate-pulse" />
+              </div>
+              <span className="ml-2 text-[10px] font-mono text-zinc-600 tracking-widest uppercase">testnet-rpc.rayls.com</span>
+            </div>
+
+            <div className="flex items-end justify-between mb-6 mt-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className="w-4 h-4 text-blue-400" strokeWidth={1.5} />
+                  <h3 className="text-xl font-bold text-zinc-100 tracking-tight">Public Chain</h3>
+                </div>
+                <p className="text-[10px] font-mono text-blue-400/50 tracking-[0.15em] uppercase">transparent · open · verifiable</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-[9px] font-mono uppercase tracking-widest text-zinc-600">Chain ID</span>
+                <span className="text-sm font-mono font-bold text-blue-400">7295799</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono uppercase tracking-widest">USDR Gas</span>
+              </div>
+            </div>
+
+            {/* Data items */}
+            <div className="space-y-1.5">
+              {[
+                { icon: Cpu, label: "AI attestation scores" },
+                { icon: GitMerge, label: "Merkle serial verification" },
+                { icon: ShoppingBag, label: "ERC-721 marketplace" },
+                { icon: Coins, label: "USDR token payments" },
+                { icon: Unlock, label: "Reveal tracking" },
+              ].map(({ icon: Icon, label }, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-950/30 border border-blue-500/8 group hover:border-blue-500/20 transition-colors">
+                  <Icon className="w-3.5 h-3.5 text-blue-500/60 flex-shrink-0" strokeWidth={1.5} />
+                  <span className="text-xs font-mono text-zinc-400 group-hover:text-zinc-300 transition-colors">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-center mt-6">
-          <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-xs backdrop-blur-sm">
-            <span className="text-emerald-400 font-semibold tracking-wide">Privacy Node</span>
-            <div className="flex items-center gap-1 text-zinc-700">
-              <div className="w-3 h-px bg-zinc-700" />
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-zinc-500 font-medium">Rayls Bridge</span>
-            <div className="flex items-center gap-1 text-zinc-700">
-              <div className="w-3 h-px bg-zinc-700" />
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-blue-400 font-semibold tracking-wide">Public Chain</span>
+        {/* Status bar */}
+        <div className="mt-4 flex items-center justify-between px-4 py-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 text-[10px] font-mono">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-emerald-400/70 uppercase tracking-widest">Privacy Node active</span>
+          </div>
+          <span className="text-zinc-600 hidden sm:block">NFT bridged via relayer lock-and-mint</span>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-blue-400/70 uppercase tracking-widest">Public Chain live</span>
           </div>
         </div>
       </div>
 
-      {/* ── Feature highlights ───────────────────────────────────── */}
+      {/* ── The Anatomy of Certainty ─────────────────────────────── */}
       <div className="w-full max-w-6xl mx-auto py-20 border-t border-zinc-800/50">
         <div className="text-center mb-12">
-          <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/60 mb-3">Powered By</p>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Built Different</h2>
+          <p className="text-xs tracking-[0.3em] uppercase text-emerald-500/60 mb-3">The Architecture of Trust</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">The Anatomy of Certainty</h2>
+          <p className="text-zinc-500 text-sm max-w-md mx-auto">
+            Four interlocking layers — privacy, intelligence, cryptography, and contract law —
+            combine so that forgery has nowhere to hide.
+          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <FeatureCard
-            icon={<Lock className="w-5 h-5" />}
-            title="ZK-Grade Privacy"
-            description="Watch data lives exclusively on a sovereign Privacy Node — invisible until you choose to reveal."
+            icon={<Fingerprint className="w-5 h-5" />}
+            title="Sovereign Privacy"
+            description="Watch metadata is sealed inside a sovereign Privacy Node. Serial numbers, caliber data, and service history exist only where you authorise them to."
           />
           <FeatureCard
-            icon={<Zap className="w-5 h-5" />}
-            title="Claude AI Oracle"
-            description="7 rule-based checks + LLM analysis for caliber, year, materials, and serial authenticity."
+            icon={<Cpu className="w-5 h-5" />}
+            title="Claude AI Verdict"
+            description="Seven deterministic rules cross-checked against a live Claude AI analysis. Caliber–reference match, production year plausibility, material coherence — all scored and signed on-chain."
           />
           <FeatureCard
-            icon={<Shield className="w-5 h-5" />}
-            title="Merkle Proofs"
-            description="On-chain Merkle tree of registered serials — cryptographic proof without revealing the full registry."
+            icon={<GitMerge className="w-5 h-5" />}
+            title="Merkle Integrity"
+            description="Every registered serial sits in an on-chain Merkle tree. Ownership is proved with a cryptographic path — no registry exposure, no replay, no duplication."
           />
           <FeatureCard
-            icon={<Eye className="w-5 h-5" />}
-            title="Conditional Reveal"
-            description="Private metadata unlocks only after confirmed USDR payment, enforced by smart contract."
+            icon={<Unlock className="w-5 h-5" />}
+            title="Payment-Gated Reveal"
+            description="Provenance unlocks only when USDR escrow clears. The RevealTracker contract is the sole key-holder — no buyer, no reveal. No exceptions."
           />
         </div>
       </div>
@@ -344,7 +446,7 @@ export default function Home() {
             <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-glow-pulse" />
             <div className="absolute inset-1 rounded-full border border-zinc-800" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
+              <Gem className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
             </div>
           </div>
         </div>
@@ -352,21 +454,17 @@ export default function Home() {
         <p className="text-zinc-400 text-sm mb-8 max-w-md mx-auto">
           Start by minting a confidential watch NFT or look up an existing attestation.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/dealer"
-            className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 text-zinc-950 rounded-lg font-semibold hover:bg-emerald-400 transition-all hover:shadow-lg hover:shadow-emerald-500/20 text-sm"
-          >
-            Open Dealer Dashboard
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-          <Link
-            href="/verify"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-zinc-700 text-zinc-300 rounded-lg font-semibold hover:bg-zinc-800 hover:border-zinc-600 transition-all text-sm"
-          >
-            <Shield className="w-4 h-4" />
-            Verify a Token
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
+          <LiquidMetalButton
+            label="Dealer Dashboard"
+            width={186}
+            onClick={() => router.push("/dealer")}
+          />
+          <LiquidMetalButton
+            label="Verify a Token"
+            width={162}
+            onClick={() => router.push("/verify")}
+          />
         </div>
         <p className="mt-12 text-xs text-zinc-700">
           Built on{" "}
@@ -422,41 +520,6 @@ function HowItWorksStep({
   );
 }
 
-function ArchCard({
-  chain,
-  chainId,
-  color,
-  items,
-}: {
-  chain: string;
-  chainId: string;
-  color: "emerald" | "blue";
-  items: string[];
-}) {
-  const borderClass = color === "emerald" ? "border-emerald-500/15 hover:border-emerald-500/30" : "border-blue-500/15 hover:border-blue-500/30";
-  const bgClass = color === "emerald" ? "bg-emerald-500/[0.03]" : "bg-blue-500/[0.03]";
-  const dotClass = color === "emerald" ? "bg-emerald-500" : "bg-blue-500";
-  const textClass = color === "emerald" ? "text-emerald-400" : "text-blue-400";
-  const iconClass = color === "emerald" ? "text-emerald-500/60" : "text-blue-500/60";
-
-  return (
-    <div className={`luxury-card rounded-xl border ${borderClass} ${bgClass} p-6 transition-colors duration-300`}>
-      <div className="flex items-center gap-2.5 mb-5">
-        <div className={`w-2 h-2 rounded-full ${dotClass} animate-pulse`} />
-        <h3 className={`font-semibold text-sm tracking-wide ${textClass}`}>{chain}</h3>
-        <span className="text-[10px] text-zinc-700 ml-auto font-mono tracking-wider">ID {chainId}</span>
-      </div>
-      <ul className="space-y-3">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-center gap-2.5 text-sm text-zinc-400">
-            <CheckCircle2 className={`w-3.5 h-3.5 ${iconClass} flex-shrink-0`} strokeWidth={2} />
-            {item}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function FeatureCard({
   icon,
